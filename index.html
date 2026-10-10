@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="classic" data-theme-dark="no">
+<head>
+<meta charset="utf-8">
+<title>CoQ Weiqi/Chess Clock</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="description" content="CoQ Weiqi/Chess Clock: a virtual tournament clock for community and inter-school events, with simple, increment, delay and byo-yomi timing modes, three colour themes, and English and Chinese.">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#f4efe6">
+<meta name="color-scheme" content="light dark">
+
+<!-- Home screen behaviour on iOS and Android -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- iOS truncates home-screen labels, so the short form is used here. -->
+<meta name="apple-mobile-web-app-title" content="CoQ Clock">
+<link rel="manifest" href="manifest.webmanifest">
+
+<!-- The logo is exactly two files: swap them and the whole app re-brands. -->
+<link rel="icon" type="image/png" sizes="48x48" href="icons/icon-48.png">
+<link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96.png">
+<link rel="apple-touch-icon" sizes="96x96" href="icons/icon-96.png">
+
+<link rel="stylesheet" href="vendor/framework7/framework7-bundle.min.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div id="app">
+  <div class="view view-main"></div>
+  <!-- The match display lives outside the router: a chevron or a swipe must
+       never be able to wander away from a running game. -->
+  <div id="cc-clock-host"></div>
+</div>
+
+<noscript>
+  <div style="padding:24px;font:16px/1.6 system-ui,sans-serif">
+    This clock needs JavaScript enabled.
+  </div>
+</noscript>
+
+<script src="vendor/framework7/framework7-bundle.min.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/platform.js"></script>
+<script src="js/clock.js"></script>
+<script src="js/views.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

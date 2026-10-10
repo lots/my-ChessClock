@@ -1,0 +1,17 @@
+{
+  "name": "CoQ Weiqi/Chess Clock",
+  "short_name": "CoQ Clock",
+  "description": "CoQ Weiqi/Chess Clock: a virtual tournament clock for community and inter-school events, with simple, increment, delay and byo-yomi timing modes, three colour themes, and English and Chinese.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#f4efe6",
+  "theme_color": "#f4efe6",
+  "icons": [
+    { "src": "icons/icon-48.png", "sizes": "48x48", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "maskable" }
+  ]
+}

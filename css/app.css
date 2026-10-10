@@ -1,0 +1,834 @@
+/*!
+ * app.css - CoQ Weiqi/Chess Clock
+ *
+ * Layer 1  theme tokens  : one block per colour theme, nothing else sets colour
+ * Layer 2  framework glue: remap Framework7's own CSS variables onto those tokens
+ * Layer 3  components    : menu, settings, help
+ * Layer 4  clock face    : the full-screen match display
+ */
+
+/* ============================================================ 1. theme tokens */
+
+:root {
+  --cc-gutter: 16px;
+  --cc-r-sm: 10px;
+  --cc-r-md: 14px;
+  --cc-r-lg: 18px;
+  --cc-safe-t: env(safe-area-inset-top, 0px);
+  --cc-safe-b: env(safe-area-inset-bottom, 0px);
+  --cc-safe-l: env(safe-area-inset-left, 0px);
+  --cc-safe-r: env(safe-area-inset-right, 0px);
+  --cc-dim-opacity: .66;
+  --cc-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+             "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+}
+
+/* -- Classic: tournament ivory and board green ---------------------------- */
+html[data-theme="classic"] {
+  --cc-bg: #f4efe6;
+  --cc-surface: #fffdf9;
+  --cc-surface-2: #f1eade;
+  --cc-text: #241d14;
+  --cc-text-dim: #7b6b57;
+  --cc-border: #e2d7c4;
+  --cc-accent: #1f6b4a;
+  --cc-accent-rgb: 31, 107, 74;
+  --cc-accent-soft: rgba(31, 107, 74, .12);
+  --cc-on-accent: #ffffff;
+  --cc-side-bg: #fffdf9;
+  --cc-side-text: #2b241c;
+  --cc-active-bg: #1f6b4a;
+  --cc-active-text: #f2fff8;
+  --cc-low-surface: #b8730a;
+  --cc-low-active: #ffd479;
+  --cc-crit-surface: #c0392b;
+  --cc-danger: #b3261e;
+  --cc-danger-text: #ffffff;
+  --cc-shadow: 0 8px 22px rgba(90, 68, 36, .13);
+  --cc-shadow-sm: 0 2px 7px rgba(90, 68, 36, .12);
+}
+
+/* -- Midnight: dark room, blue glow --------------------------------------- */
+html[data-theme="midnight"] {
+  --cc-bg: #080d13;
+  --cc-surface: #111a24;
+  --cc-surface-2: #182430;
+  --cc-text: #e8eef6;
+  --cc-text-dim: #8fa3b8;
+  --cc-border: #22323f;
+  --cc-accent: #2bb3e0;
+  --cc-accent-rgb: 43, 179, 224;
+  --cc-accent-soft: rgba(43, 179, 224, .16);
+  --cc-on-accent: #04141c;
+  --cc-side-bg: #0c141c;
+  --cc-side-text: #dbe6f1;
+  --cc-active-bg: #0f4358;
+  --cc-active-text: #9fe9ff;
+  --cc-low-surface: #ffb020;
+  --cc-low-active: #ffd06b;
+  --cc-crit-surface: #ff6b5e;
+  --cc-danger: #d93025;
+  --cc-danger-text: #ffffff;
+  --cc-shadow: 0 10px 26px rgba(0, 0, 0, .55);
+  --cc-shadow-sm: 0 2px 8px rgba(0, 0, 0, .45);
+}
+
+/* -- High contrast: sunlight and colour-blind friendly -------------------- */
+html[data-theme="contrast"] {
+  --cc-bg: #000000;
+  --cc-surface: #0d0d0d;
+  --cc-surface-2: #1a1a1a;
+  --cc-text: #ffffff;
+  --cc-text-dim: #bdbdbd;
+  --cc-border: #454545;
+  --cc-accent: #ffd400;
+  --cc-accent-rgb: 255, 212, 0;
+  --cc-accent-soft: rgba(255, 212, 0, .18);
+  --cc-on-accent: #000000;
+  --cc-side-bg: #000000;
+  --cc-side-text: #ffffff;
+  --cc-active-bg: #ffd400;
+  --cc-active-text: #000000;
+  --cc-low-surface: #ffd400;
+  --cc-low-active: #4a2a00;
+  --cc-crit-surface: #ff5a4d;
+  --cc-danger: #ff3b30;
+  --cc-danger-text: #ffffff;
+  --cc-shadow: none;
+  --cc-shadow-sm: none;
+}
+
+/* ======================================================= 2. Framework7 glue */
+
+html[data-theme] {
+  --f7-font-family: var(--cc-font);
+  /* Framework7 v9 dresses bar panes in an iOS 26 "liquid glass" pill. On a
+     clock that is either bright ivory or pure black, a translucent glass blob
+     only muddies the contrast, so the bars are flattened onto the theme. */
+  --f7-glass-bg-color: transparent;
+  --f7-glass-shadow: none;
+  --f7-glass-shadow-thumb: none;
+  --f7-bars-translucent-opacity: 1;
+  --f7-theme-color: var(--cc-accent);
+  --f7-theme-color-rgb: var(--cc-accent-rgb);
+  --f7-page-bg-color: var(--cc-bg);
+  --f7-bars-bg-color: var(--cc-surface);
+  --f7-bars-text-color: var(--cc-text);
+  --f7-bars-link-color: var(--cc-accent);
+  --f7-bars-border-color: var(--cc-border);
+  --f7-navbar-bg-color: var(--cc-surface);
+  --f7-navbar-text-color: var(--cc-text);
+  --f7-navbar-link-color: var(--cc-accent);
+  --f7-text-color: var(--cc-text);
+  --f7-text-color-rgb: 36, 29, 20;
+  --f7-card-bg-color: var(--cc-surface);
+  --f7-card-text-color: var(--cc-text);
+  --f7-card-border-color: var(--cc-border);
+  --f7-card-margin-horizontal: var(--cc-gutter);
+  --f7-card-margin-vertical: 12px;
+  --f7-card-border-radius: var(--cc-r-lg);
+  --f7-block-text-color: var(--cc-text);
+  --f7-block-strong-bg-color: var(--cc-surface);
+  --f7-block-strong-border-color: var(--cc-border);
+  --f7-list-bg-color: var(--cc-surface);
+  --f7-list-border-color: var(--cc-border);
+  --f7-list-item-text-color: var(--cc-text);
+  --f7-list-item-title-text-color: var(--cc-text);
+  --f7-popup-bg-color: var(--cc-bg);
+  --f7-dialog-bg-color: var(--cc-surface);
+  --f7-dialog-text-color: var(--cc-text);
+  --f7-dialog-title-text-color: var(--cc-text);
+  --f7-dialog-button-text-color: var(--cc-accent);
+  --f7-segmented-bg-color: var(--cc-surface-2);
+  --f7-button-bg-color: transparent;
+  --f7-button-text-color: var(--cc-accent);
+  --f7-toggle-active-color: var(--cc-accent);
+  --f7-toggle-inactive-color: var(--cc-surface-2);
+}
+html[data-theme="midnight"] { --f7-text-color-rgb: 232, 238, 246; }
+
+html, body {
+  background: var(--cc-bg);
+  color: var(--cc-text);
+  font-family: var(--cc-font);
+  overscroll-behavior: none;
+}
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+/* Framework7 fades the bar background out towards its lower edge, which let the
+   page content show through while scrolling. A match UI wants an opaque bar. */
+.ios .navbar-bg:before,
+.ios .toolbar-bg:before {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.ios .navbar-bg:after,
+.ios .toolbar-bg:after {
+  background-image: none;
+  background-color: var(--cc-surface);
+}
+
+.ios .navbar .left,
+.ios .navbar .right,
+.ios .navbar .navbar-pane,
+.ios .toolbar .left,
+.ios .toolbar .right,
+.ios .toolbar-pane {
+  background-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  min-width: 0;
+}
+
+/* Framework7 sets pointer-events:none on the navbar inner; give it back to the
+   pieces that are actually interactive. */
+.navbar-inner > .left,
+.navbar-inner > .right,
+.navbar-inner > .title { pointer-events: auto; }
+
+.cc-ico { width: 20px; height: 20px; flex: none; display: block; }
+.cc-logo { border-radius: 12px; flex: none; }
+.cc-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cc-accent);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ============================================================== 3. menu page */
+
+/* A desktop or tablet has no reason to stretch the controls across the whole
+   window, so the scrolling page keeps a comfortable reading column. */
+.view .page-content {
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cc-menu { padding-bottom: 36px; }
+.cc-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px var(--cc-gutter) 6px;
+}
+.cc-hero-title { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -.01em; }
+.cc-hero-sub { margin: 3px 0 0; font-size: 12.5px; color: var(--cc-text-dim); line-height: 1.4; }
+
+.cc-card {
+  border: 1px solid var(--cc-border);
+  box-shadow: var(--cc-shadow);
+  overflow: hidden;
+}
+.cc-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.cc-card-title { font-size: 14.5px; font-weight: 700; letter-spacing: .01em; }
+.cc-card-note { font-size: 11.5px; color: var(--cc-text-dim); }
+.cc-card-note,
+.cc-badge { margin-left: auto; }
+.cc-badge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--cc-accent-soft);
+  color: var(--cc-accent);
+  font-variant-numeric: tabular-nums;
+}
+.cc-desc { margin: 10px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--cc-text-dim); }
+
+.cc-seg {
+  width: 100%;
+  padding: 3px;
+  border-radius: var(--cc-r-sm);
+  background: var(--cc-surface-2);
+  box-shadow: none;
+}
+/* Four choices have to survive a 320 px phone, so the label scales with the
+   viewport instead of wrapping or truncating. */
+.segmented.cc-seg .button {
+  min-height: 34px;
+  padding: 7px 2px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--cc-text-dim);
+  font-size: clamp(10px, 3.1vw, 13px);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.segmented.cc-seg .button.active {
+  background: var(--cc-accent);
+  color: var(--cc-on-accent);
+  box-shadow: var(--cc-shadow-sm);
+}
+
+.cc-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cc-theme {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 5px 9px;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-sm);
+  background: var(--cc-surface-2);
+  color: var(--cc-text);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.cc-theme.is-active {
+  border-color: var(--cc-accent);
+  background: var(--cc-accent-soft);
+  box-shadow: 0 0 0 1px var(--cc-accent) inset;
+}
+.cc-theme-name { text-align: center; line-height: 1.25; }
+.cc-swatch {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--cc-border);
+  flex: none;
+}
+[data-swatch="classic"]  { background: linear-gradient(135deg, #fffdf9 0 50%, #1f6b4a 50% 100%); }
+[data-swatch="midnight"] { background: linear-gradient(135deg, #101923 0 50%, #2bb3e0 50% 100%); }
+[data-swatch="contrast"] { background: linear-gradient(135deg, #000000 0 50%, #ffd400 50% 100%); }
+
+.cc-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+}
+.cc-preset {
+  padding: 9px 4px;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-sm);
+  background: var(--cc-surface-2);
+  color: var(--cc-text);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.cc-preset.is-active { background: var(--cc-accent); border-color: transparent; color: var(--cc-on-accent); }
+
+/* auto-fit means one field for Simple, two for Increment/Delay and three for
+   Byo-yomi, without any mode-specific layout rules. */
+.cc-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: 10px; margin-top: 12px; }
+.cc-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* Fields that do not apply to the current timing mode. The auto-fit grid above
+   then gives the remaining fields the whole width. */
+.cc-field.is-hidden { display: none; }
+.cc-label { font-size: 11.5px; font-weight: 600; color: var(--cc-text-dim); }
+.cc-stepper {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-sm);
+  background: var(--cc-surface-2);
+  overflow: hidden;
+}
+.cc-stepper-btn {
+  width: 34px;
+  border: 0;
+  background: transparent;
+  color: var(--cc-accent);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.cc-stepper-btn:active { background: var(--cc-accent-soft); }
+.cc-input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--cc-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 9px 2px;
+}
+.cc-input:focus { outline: none; }
+.cc-input::-webkit-outer-spin-button,
+.cc-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.cc-input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+.cc-players { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: end; }
+/* Framework7 resets input padding and background with input[type="..."]
+   selectors, which outrank a bare class. Matching that specificity is what lets
+   the theme's own field styling through. */
+input.cc-input { padding: 9px 2px; }
+input.cc-input-text {
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-sm);
+  background: var(--cc-surface-2);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px;
+}
+.cc-swap {
+  width: 40px; height: 40px;
+  margin-bottom: 1px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-sm);
+  background: var(--cc-surface-2);
+  color: var(--cc-accent);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.cc-swap:active { background: var(--cc-accent-soft); }
+
+.button.cc-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: calc(100% - var(--cc-gutter) * 2);
+  margin: 16px var(--cc-gutter) 0;
+  height: 58px;
+  border-radius: var(--cc-r-lg);
+  background: var(--cc-accent);
+  color: var(--cc-on-accent);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  box-shadow: var(--cc-shadow);
+  touch-action: manipulation;
+}
+.button.cc-start .cc-ico { width: 22px; height: 22px; }
+.cc-hint { margin: 9px var(--cc-gutter) 0; text-align: center; font-size: 12px; color: var(--cc-text-dim); }
+
+.cc-nav-rows { display: flex; flex-direction: column; gap: 8px; margin: 22px var(--cc-gutter) 0; }
+.cc-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-md);
+  background: var(--cc-surface);
+  color: var(--cc-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--cc-shadow-sm);
+}
+.cc-nav-row .cc-ico { color: var(--cc-accent); }
+.cc-nav-row-text { flex: 1; }
+.cc-nav-row-caret { color: var(--cc-text-dim); width: 16px; height: 16px; }
+.cc-foot {
+  margin: 18px 24px 0;
+  text-align: center;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--cc-text-dim);
+}
+.cc-version { text-align: center; font-size: 11px; color: var(--cc-text-dim); margin-top: 14px; opacity: .7; }
+
+/* ========================================================== settings / help */
+
+.cc-rows { display: flex; flex-direction: column; }
+.cc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--cc-border);
+}
+.cc-row:last-child { border-bottom: 0; }
+.cc-rows-sep { height: 10px; }
+.cc-row-text { flex: 1; min-width: 0; }
+.cc-row-title { font-size: 14px; font-weight: 600; }
+.cc-row-hint { margin-top: 3px; font-size: 11.5px; line-height: 1.45; color: var(--cc-text-dim); }
+
+.toggle { --f7-toggle-active-color: var(--cc-accent); --f7-toggle-inactive-color: var(--cc-surface-2); }
+.toggle-icon { background: var(--cc-surface-2); border: 1px solid var(--cc-border); }
+.toggle input:checked ~ .toggle-icon { background: var(--cc-accent); border-color: var(--cc-accent); }
+.toggle input:checked ~ .toggle-icon:after { background: var(--cc-on-accent); }
+
+.cc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 4px var(--cc-gutter) 0; }
+.button.cc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-md);
+  background: var(--cc-surface);
+  color: var(--cc-text);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: none;
+  touch-action: manipulation;
+}
+.button.cc-btn .cc-ico { width: 18px; height: 18px; }
+.button.cc-btn.button-fill { background: var(--cc-accent); border-color: transparent; color: var(--cc-on-accent); }
+
+.cc-about-brand { display: flex; align-items: center; gap: 14px; }
+.cc-about-name { font-size: 16px; font-weight: 700; }
+.cc-about-sub { margin-top: 2px; font-size: 12px; color: var(--cc-text-dim); }
+.cc-help .help-line { margin: 0 0 9px; font-size: 13px; line-height: 1.68; color: var(--cc-text); }
+.cc-help .help-line:last-child { margin-bottom: 0; }
+.cc-icon-files { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.cc-icon-file {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-md);
+  background: var(--cc-surface-2);
+}
+.cc-icon-file figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-size: 10px;
+  color: var(--cc-text-dim);
+  font-family: ui-monospace, Consolas, monospace;
+}
+.cc-icon-file figcaption small { font-size: 9.5px; opacity: .8; }
+.cc-icon-file img { border-radius: 9px; }
+
+/* =============================================================== 4. the clock */
+
+.popup.cc-clock {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Framework7 centres popups on screens of 630x630 or larger with negative
+     margins. The clock wants the whole screen, so those are cancelled here as
+     well as via the popup-tablet-fullscreen class on the element itself. */
+  margin: 0;
+  background: var(--cc-bg);
+  overflow: hidden;
+  border-radius: 0;
+}
+.cc-clock .cc-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto 1fr;
+  background: var(--cc-bg);
+  /* Notches, rounded corners and the home indicator all reduce the usable area. */
+  padding: var(--cc-safe-t) var(--cc-safe-r) var(--cc-safe-b) var(--cc-safe-l);
+  /* A match display must never select text, show a callout or zoom on a double tap. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+.cc-side {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  background: var(--cc-side-bg);
+  color: var(--cc-side-text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color .18s ease, color .18s ease;
+  touch-action: manipulation;
+}
+.cc-side-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 4vmin 3.5vmin;
+  gap: .6vmin;
+  transition: opacity .2s ease;
+}
+/* Face-to-face: the opponent reads their own half from the other side of the table. */
+.cc-stage[data-rot="on"] .cc-side[data-side="1"] .cc-side-inner { transform: rotate(180deg); }
+
+.cc-side-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .8vmin;
+  /* Must be a definite width, otherwise the name's max-width resolves against
+     the row's own shrink-to-fit width and clips even "Player 1". */
+  width: 100%;
+  max-width: 100%;
+}
+.cc-name {
+  font-size: max(12px, 2.6vmin);
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  opacity: .85;
+  max-width: 78%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cc-side-state { display: flex; opacity: 0; transition: opacity .2s; }
+.cc-side-state .cc-ico { width: max(11px, 2.2vmin); height: max(11px, 2.2vmin); }
+.cc-side.is-active .cc-side-state { opacity: .9; }
+
+.cc-time-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.cc-time {
+  display: block;
+  font-weight: 700;
+  line-height: .94;
+  letter-spacing: -.035em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-size: 80px; /* replaced by the fitting routine once the layout is known */
+}
+.cc-side-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1vmin;
+  min-height: 1.4em;
+  font-size: max(10.5px, 2vmin);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.cc-moves,
+.cc-side-hint { opacity: .75; }
+.cc-side.is-active .cc-moves,
+.cc-side.is-active .cc-side-hint { opacity: .9; }
+.cc-moves b { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Byo-yomi readout: periods left x period length, e.g. 3 x 30s. It stays at full
+   opacity while the move counter beside it is dimmed, because in overtime this
+   number matters more than anything else on the half. */
+.cc-byo {
+  padding: .28em .62em;
+  border-radius: 999px;
+  background: var(--cc-accent-soft);
+  color: var(--cc-accent);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .05em;
+  text-transform: none;
+  white-space: nowrap;
+}
+.cc-byo[hidden] { display: none; }
+.cc-side.is-active .cc-byo {
+  background: rgba(255, 255, 255, .18);
+  color: inherit;
+}
+.cc-side-hint { display: none; }
+
+/* Before the first tap there is nothing to dim, and the useful message is how
+   to start. */
+.cc-stage[data-status="ready"] .cc-side-hint { display: inline; }
+.cc-stage[data-status="ready"] .cc-moves { display: none; }
+
+.cc-side.is-active { background: var(--cc-active-bg); color: var(--cc-active-text); }
+.cc-side.is-active .cc-side-bottom { opacity: .9; }
+.cc-side.is-low .cc-time { color: var(--cc-low-surface); }
+.cc-side.is-active.is-low .cc-time { color: var(--cc-low-active); }
+.cc-side.is-critical .cc-time { color: var(--cc-crit-surface); animation: cc-glow 1s ease-in-out infinite; }
+.cc-side.is-active.is-critical { background: var(--cc-danger); color: var(--cc-danger-text); }
+.cc-side.is-active.is-critical .cc-time { color: var(--cc-danger-text); }
+.cc-side.is-flagged { background: var(--cc-danger); color: var(--cc-danger-text); }
+.cc-side.is-flagged .cc-time { color: var(--cc-danger-text); animation: none; }
+.cc-side.is-winner { box-shadow: inset 0 0 0 3px var(--cc-accent); }
+
+@keyframes cc-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .68; }
+}
+
+/* Dimmed inactive side: keeps the panel solid but fades its contents. Only a
+   running or paused game has an "inactive" player to dim. */
+.cc-stage[data-dim="on"][data-status="running"] .cc-side:not(.is-active) .cc-side-inner,
+.cc-stage[data-dim="on"][data-status="paused"] .cc-side:not(.is-active) .cc-side-inner {
+  opacity: var(--cc-dim-opacity);
+}
+
+/* Whose turn it is is carried by the background colour, not by the fade, so a
+   player down to their last seconds stays at full strength on both halves. */
+.cc-stage[data-dim="on"] .cc-side.is-critical:not(.is-active) .cc-side-inner,
+.cc-stage[data-dim="on"] .cc-side.is-flagged .cc-side-inner {
+  opacity: 1;
+}
+
+.cc-mid {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  height: 58px;
+  background: var(--cc-bg);
+  border-top: 1px solid var(--cc-border);
+  border-bottom: 1px solid var(--cc-border);
+}
+.cc-mid-group { display: flex; gap: 8px; }
+
+/* The app mark sits in the empty middle of the control bar, between the two
+   button groups, where it is out of the way in both orientations. */
+.cc-mid-logo { display: flex; align-items: center; justify-content: center; }
+.cc-mid-logo .cc-logo {
+  width: clamp(20px, 4.2vmin, 30px);
+  height: auto;
+  border-radius: 7px;
+  opacity: .9;
+}
+/* The paused pill is centred in the same slot, so the mark steps aside. */
+.cc-stage[data-status="paused"] .cc-mid-logo { visibility: hidden; }
+.cc-mid-btn {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--cc-border);
+  border-radius: 12px;
+  background: var(--cc-surface-2);
+  color: var(--cc-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: opacity .15s, background .15s;
+}
+.cc-mid-btn:active { background: var(--cc-accent-soft); }
+.cc-mid-btn .cc-ico { width: 21px; height: 21px; }
+.cc-mid-btn.cc-mid-exit { color: var(--cc-text-dim); }
+.cc-mid-btn.is-disabled { opacity: .32; pointer-events: none; }
+
+.cc-center {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.cc-center[hidden] { display: none; }
+.cc-center-pill {
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--cc-accent-soft);
+  color: var(--cc-accent);
+  font-size: max(11px, 1.7vmin);
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cc-flag {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 5vmin;
+  background: rgba(0, 0, 0, .66);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.cc-flag[hidden] { display: none; }
+.cc-flag-box {
+  width: min(430px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 22px;
+  border-radius: var(--cc-r-lg);
+  background: var(--cc-surface);
+  color: var(--cc-text);
+  border: 1px solid var(--cc-border);
+  box-shadow: var(--cc-shadow);
+  text-align: center;
+}
+.cc-flag-icon { color: var(--cc-danger); display: flex; justify-content: center; margin-bottom: 6px; }
+.cc-flag-icon .cc-ico { width: 34px; height: 34px; }
+.cc-flag-title { font-size: 20px; font-weight: 800; letter-spacing: .12em; color: var(--cc-danger); }
+.cc-flag-body { margin-top: 8px; font-size: 13.5px; line-height: 1.6; }
+.cc-flag-times { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+.cc-flag-time {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--cc-r-sm);
+  background: var(--cc-surface-2);
+  font-size: 13px;
+}
+.cc-flag-time b { font-variant-numeric: tabular-nums; font-size: 15px; }
+.cc-flag-time.is-flagged { color: var(--cc-danger); }
+.cc-flag-actions { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ============================================================ orientation */
+
+@media (orientation: landscape) {
+  .cc-clock .cc-stage { grid-template-columns: 1fr auto 1fr; grid-template-rows: 1fr; }
+  .cc-mid {
+    flex-direction: column;
+    width: 58px;
+    height: auto;
+    padding: 10px 0;
+    border-top: 0;
+    border-bottom: 0;
+    border-left: 1px solid var(--cc-border);
+    border-right: 1px solid var(--cc-border);
+  }
+  .cc-mid-group { flex-direction: column; }
+  .cc-side[data-side="0"] .cc-side-inner { padding-left: 5vmin; }
+  .cc-side[data-side="1"] .cc-side-inner { padding-right: 5vmin; }
+}
+
+/* A phone held in landscape is short: tighten the control bar. */
+@media (orientation: landscape) and (max-height: 380px) {
+  .cc-mid { width: 50px; }
+  .cc-mid-btn { width: 36px; height: 36px; border-radius: 10px; }
+  .cc-mid-btn .cc-ico { width: 18px; height: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-side.is-critical .cc-time { animation: none; }
+  .cc-side, .cc-side-inner { transition: none; }
+}
+

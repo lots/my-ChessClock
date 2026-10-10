@@ -1,0 +1,22 @@
+{
+  "name": "coq-chess-clock",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CoQ Weiqi/Chess Clock: a virtual tournament clock for community and inter-school events, built with HTML5, CSS and Framework7.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "serve": "node tools/serve.mjs",
+    "test": "node tools/clock-test.mjs",
+    "verify": "node tools/verify-ui.mjs",
+    "vendor": "node tools/vendor-framework7.mjs",
+    "icons": "node tools/generate-icons.mjs"
+  },
+  "dependencies": {
+    "framework7": "^9.2.0"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.13.0"
+  }
+}
