@@ -7,11 +7,11 @@ JavaScript** on the **Framework7** framework.
 It runs from a local file on a PC, from a small local server that phones on the
 same wifi can open, or from any static web host.
 
-![Menu](docs/menu-classic.png)
-![Clock, Black to move](docs/clock-portrait-start.png)
-![Clock, landscape, flag fall](docs/clock-landscape-flag.png)
-![Byo-yomi overtime](docs/clock-byoyomi.png)
-![Clock, desktop](docs/clock-desktop.png)
+![Menu](docs/screens/menu-classic.png)
+![Clock, Black to move](docs/screens/clock-portrait-start.png)
+![Clock, landscape, flag fall](docs/screens/clock-landscape-flag.png)
+![Byo-yomi overtime](docs/screens/clock-byoyomi.png)
+![Clock, desktop](docs/screens/clock-desktop.png)
 
 ---
 
@@ -61,7 +61,7 @@ npm install     # only needed for Framework7's source and the dev tools
 npm start       # http://localhost:8080
 ```
 
-![Menu on a desktop](docs/menu-desktop.png)
+![Menu on a desktop](docs/screens/menu-desktop.png)
 
 ### On a phone or tablet
 
@@ -91,9 +91,9 @@ and no server-side code. It also works from a subfolder, because every path in
 Presets are offered for each mode, and any main time (1–180 min) with any bonus
 (0–600 s) can be set by hand. The chosen control is remembered on the device.
 
-![Byo-yomi presets](docs/menu-byoyomi.png)
-![Byo-yomi overtime, portrait](docs/clock-byoyomi-portrait.png)
-![Byo-yomi flag fall](docs/clock-byoyomi-flag.png)
+![Byo-yomi presets](docs/screens/menu-byoyomi.png)
+![Byo-yomi overtime, portrait](docs/screens/clock-byoyomi-portrait.png)
+![Byo-yomi flag fall](docs/screens/clock-byoyomi-flag.png)
 
 ### How the clock is kept honest
 
@@ -132,19 +132,19 @@ overtime and the loss of each period with distinct tones.
 7. **Pause** for an arbiter interruption; **Reset** stops the clock and returns
    it to the tap-to-start state; the cross closes the display.
 
-![Menu, players and first move](docs/menu-players.png)
+![Menu, players and first move](docs/screens/menu-players.png)
 
 The display has three states: tap-to-start (which **Reset** returns to), running,
 and paused for an arbiter interruption.
 
-![Clock, tap to start](docs/clock-portrait-ready.png)
-![Clock, running](docs/clock-portrait-running.png)
-![Clock, paused](docs/clock-portrait-paused.png)
+![Clock, tap to start](docs/screens/clock-portrait-ready.png)
+![Clock, running](docs/screens/clock-portrait-running.png)
+![Clock, paused](docs/screens/clock-portrait-paused.png)
 
 Settings, and the help that ships inside the app:
 
-![Settings](docs/settings.png)
-![About & Help](docs/help.png)
+![Settings](docs/screens/settings.png)
+![About & Help](docs/screens/help.png)
 
 On a PC the same actions have keys while the clock is open:
 `A` / `1` / `Left` and `L` / `2` / `Right` press a side, `Space` pauses, `R`
@@ -156,7 +156,7 @@ resets, `F` flips the display, `Esc` closes.
 
 ### Bilingual interface (EN / 华文)
 
-![Menu, Chinese](docs/menu-chinese.png)
+![Menu, Chinese](docs/screens/menu-chinese.png)
 
 The **Menu** page carries a two-part language button showing both languages at
 once; the active one is filled in. Everything else follows: menu, settings,
@@ -174,15 +174,15 @@ object and one entry to `I18n.available`.
 | **Midnight** | Near-black with a cyan accent — a dim hall, and kind to OLED battery |
 | **High Contrast** | Pure black, pure white, yellow accent — outdoor light and colour-blind friendly |
 
-![Menu, Classic](docs/menu-classic.png)
-![Menu, Midnight](docs/menu-midnight.png)
-![Menu, High Contrast](docs/menu-contrast.png)
+![Menu, Classic](docs/screens/menu-classic.png)
+![Menu, Midnight](docs/screens/menu-midnight.png)
+![Menu, High Contrast](docs/screens/menu-contrast.png)
 
 The same clock face in each theme:
 
-![Clock, Classic](docs/clock-portrait-start.png)
-![Clock, Midnight](docs/clock-midnight.png)
-![Clock, High Contrast](docs/clock-contrast.png)
+![Clock, Classic](docs/screens/clock-portrait-start.png)
+![Clock, Midnight](docs/screens/clock-midnight.png)
+![Clock, High Contrast](docs/screens/clock-contrast.png)
 
 Themes are pure CSS custom properties, one block per theme in `css/app.css`, and
 Framework7's own variables are remapped onto the same tokens so the framework's
@@ -237,7 +237,7 @@ myChessClock/
 │   ├── vendor-framework7.mjs  copies the dist out of node_modules
 │   ├── clock-test.mjs         deterministic engine tests (npm test)
 │   └── verify-ui.mjs          drives the real UI in Chrome and screenshots it
-└── docs/                      screenshots used by this file
+└── docs/screens/              screenshots used by this file, at 60% scale
 ```
 
 Architecture in one line: **`clock.js` knows nothing about the DOM, `views.js`
