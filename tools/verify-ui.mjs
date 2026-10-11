@@ -13,7 +13,26 @@ import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHOTS = path.join(ROOT, '.tmp', 'shots');
+// The suite runs in either language. LANG_MODE=zh seeds 华文 and writes its
+// screenshots to a separate folder, so the Chinese README gets Chinese images
+// from the very same flow rather than a second, drifting copy of it.
+const LANG = process.env.LANG_MODE === 'zh' ? 'zh' : 'en';
+const S = LANG === 'zh'
+  ? {
+      app: 'CoQ棋钟', black: '黑方', white: '白方',
+      delayLabel: '延时（秒）', periodLabel: '读秒时长（秒）', secShort: '秒',
+      readyHint: '点按黑方一侧开始',
+      byoVerdict: '黑方 读秒次数用尽，白方 获胜。',
+      byoKeyword: '围棋'
+    }
+  : {
+      app: 'CoQ Weiqi/Chess Clock', black: 'Black', white: 'White',
+      delayLabel: 'Delay (sec)', periodLabel: 'Period (sec)', secShort: 's',
+      readyHint: 'Tap Black’s side to start',
+      byoVerdict: 'Black ran out of byo-yomi periods. White wins.',
+      byoKeyword: 'Go'
+    };
+const SHOTS = path.join(ROOT, '.tmp', 'shots', LANG);
 const PORT = Number(process.env.PORT || 8123);
 const BASE = 'http://127.0.0.1:' + PORT;
 
@@ -104,6 +123,8 @@ const browser = await puppeteer.launch({
   args: ['--hide-scrollbars', '--disable-gpu', '--force-color-profile=srgb', '--mute-audio', '--lang=en-US']
 });
 const page = await browser.newPage();
+// Seed the language before the app scripts run, on every navigation.
+await page.evaluateOnNewDocument((l) => { try { localStorage.setItem('cc.lang', l); } catch (e) { /* ignore */ } }, LANG);
 
 page.on('console', (m) => { if (m.type() === 'error') problems.push('console error: ' + m.text()); });
 page.on('pageerror', (e) => problems.push('page error: ' + e.message));
@@ -152,9 +173,9 @@ await page.waitForSelector('.page-current .cc-hero-title', { timeout: 8000 });
 await sleep(400);
 
 check('the menu page rendered', await page.$eval('.page-current', (el) => el.getAttribute('data-name')), 'menu');
-check('an English browser gets an English interface',
-  await page.$eval('.cc-hero-title', (el) => el.textContent.trim()), 'CoQ Weiqi/Chess Clock');
-check('the browser tab carries the app name', await page.title(), 'CoQ Weiqi/Chess Clock');
+check('the interface starts in the seeded language (' + LANG + ')',
+  await page.$eval('.cc-hero-title', (el) => el.textContent.trim()), S.app);
+check('the browser tab carries the app name', await page.title(), S.app);
 check('the router redirected the bare path', await page.$eval('#app', (el) => !!el.querySelector('.view-main')));
 check('the language control shows both languages',
   await page.$$eval('[data-seg="lang"] .button', (els) => els.map((e) => e.textContent.trim())),
@@ -183,6 +204,10 @@ await shot('menu-phone-zh');
 await tap('[data-lang="en"]');
 check('switching back to English works',
   await page.$eval('.cc-hero-title', (el) => el.textContent.trim()), 'CoQ Weiqi/Chess Clock');
+
+// The swap checks above deliberately end in English; a Chinese screenshot run
+// has to go back to 华文 before anything is captured.
+if (LANG === 'zh') await tap('[data-lang="zh"]');
 
 /* --------------------------------------------------------------- the themes */
 
@@ -224,22 +249,22 @@ check('simple mode really hides the increment field, leaving only the main time'
   await visibleFields(), ['minutes']);
 await tap('[data-mode="delay"]');
 check('delay mode relabels the bonus field',
-  await page.$eval('#cc-bonus-label', (el) => el.textContent.trim()), 'Delay (sec)');
+  await page.$eval('#cc-bonus-label', (el) => el.textContent.trim()), S.delayLabel);
 await tap('[data-mode="increment"]');
 await tap('[data-preset="10-5"]');
 
 /* the first mover */
 check('the menu offers a first-to-move choice',
   await page.$$eval('[data-seg="first"] .button', (els) => els.map((e) => e.textContent.trim())),
-  ['Black', 'White']);
+  [S.black, S.white]);
 check('Black moves first by default',
   await page.$eval('[data-first="black"]', (el) => el.classList.contains('active')), true);
 await tap('[data-first="white"]');
 check('switching the first mover to White re-labels both halves',
-  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), ['White', 'Black']);
+  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), [S.white, S.black]);
 await tap('[data-first="black"]');
 check('and switching back puts Black first again',
-  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), ['Black', 'White']);
+  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), [S.black, S.white]);
 
 check('both name fields show the neutral placeholder',
   await page.$$eval('#cc-name0, #cc-name1', (els) => els.map((e) => e.getAttribute('placeholder'))),
@@ -260,7 +285,7 @@ check('the game starts the moment the display opens',
 check('both player names reach the display',
   await page.$$eval('.cc-name', (els) => els.map((e) => e.textContent.trim())), ['Wei', 'Anand']);
 check('the halves are labelled Black and White',
-  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), ['Black', 'White']);
+  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), [S.black, S.white]);
 check('the first mover, Black, is the one on the clock',
   await page.$$eval('.cc-side', (sides) => sides.map((s) => s.classList.contains('is-active'))), [true, false]);
 check('Black is already spending time',
@@ -339,7 +364,7 @@ check('with both clocks restored in full',
   await page.$$eval('.cc-time', (els) => els.map((e) => e.textContent.trim())), ['10:00', '10:00']);
 check('and the hint names whose side starts it',
   await page.$eval('.cc-side[data-side="0"] .cc-side-hint', (el) => el.textContent.trim()),
-  'Tap Black\u2019s side to start');
+  S.readyHint);
 check('the other half shows the move counter instead',
   await page.$eval('.cc-side[data-side="0"] .cc-move-count', (el) => el.textContent.trim()), '0');
 await shot('clock-portrait-ready', PHONE);
@@ -478,9 +503,9 @@ check('byo-yomi really shows all three fields',
 check('and the period field is painted, not merely classed',
   await rendered('[data-field="periods"]'), true);
 check('the bonus field is relabelled as the period length',
-  await page.$eval('#cc-bonus-label', (el) => el.textContent.trim()), 'Period (sec)');
+  await page.$eval('#cc-bonus-label', (el) => el.textContent.trim()), S.periodLabel);
 check('the byo-yomi mode explains itself',
-  (await page.$eval('#cc-mode-desc', (el) => el.textContent.trim())).indexOf('Go') >= 0, 'ok');
+  (await page.$eval('#cc-mode-desc', (el) => el.textContent.trim())).indexOf(S.byoKeyword) >= 0, 'ok');
 
 check('the byo-yomi presets include 10+3x20',
   (await page.$$eval('.cc-preset', (els) => els.map((e) => e.getAttribute('data-preset')))).indexOf('10-3-20') >= 0,
@@ -531,7 +556,7 @@ await sleep(2500);
 check('a 30-second period keeps the digits out of the critical colour',
   await page.$eval('.cc-side[data-side="0"]', (el) => el.classList.contains('is-critical')), false);
 check('and the readout names the period length',
-  await page.$eval('.cc-side[data-side="0"] .cc-byo', (el) => el.textContent.trim()), '3 \u00d7 30s');
+  await page.$eval('.cc-side[data-side="0"] .cc-byo', (el) => el.textContent.trim()), '3 \u00d7 30' + S.secShort);
 await shot('clock-landscape-byoyomi');
 await page.setViewport(PHONE);
 await sleep(300);
@@ -551,18 +576,18 @@ const firstPeriod = await page.evaluate(() => ({
 }));
 check('the main time gives way to the first period', firstPeriod.inByo, true);
 check('the period readout becomes visible', firstPeriod.shown, true);
-check('and shows how many periods are left', firstPeriod.pill, '3 \u00d7 2s');
+check('and shows how many periods are left', firstPeriod.pill, '3 \u00d7 2' + S.secShort);
 await shot('clock-portrait-byoyomi', PHONE);
 
 await sleep(2100);
 check('letting a period expire lowers the readout',
-  await page.$eval('.cc-side[data-side="0"] .cc-byo', (el) => el.textContent.trim()), '2 \u00d7 2s');
+  await page.$eval('.cc-side[data-side="0"] .cc-byo', (el) => el.textContent.trim()), '2 \u00d7 2' + S.secShort);
 await sleep(4200);
 check('using up every period flags the player',
   await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'flagged');
 check('and the verdict is phrased in byo-yomi terms, naming the colours when no name was typed',
   await page.$eval('#cc-flag-body', (el) => el.textContent.trim()),
-  'Black ran out of byo-yomi periods. White wins.');
+  S.byoVerdict);
 await shot('clock-portrait-byoyomi-flag', PHONE);
 await tap('#cc-backmenu');
 await sleep(500);
@@ -651,6 +676,8 @@ check('the saved control survives a reload',
 
 const fileUrl = 'file:///' + path.join(ROOT, 'index.html').split(path.sep).join('/');
 const filePage = await browser.newPage();
+// Seed the language before the app scripts run, on every navigation.
+await filePage.evaluateOnNewDocument((l) => { try { localStorage.setItem('cc.lang', l); } catch (e) { /* ignore */ } }, LANG);
 const fileProblems = [];
 filePage.on('pageerror', (e) => fileProblems.push('file:// page error: ' + e.message));
 filePage.on('console', (m) => {
@@ -692,6 +719,8 @@ const GEO_VIEWPORTS = [
 ];
 
 const geoPage = await browser.newPage();
+// Seed the language before the app scripts run, on every navigation.
+await geoPage.evaluateOnNewDocument((l) => { try { localStorage.setItem('cc.lang', l); } catch (e) { /* ignore */ } }, LANG);
 const geoErrors = [];
 geoPage.on('pageerror', (e) => geoErrors.push('geometry page error: ' + e.message));
 let coldLoad = null;
@@ -766,7 +795,7 @@ for (const [label, viewport] of GEO_VIEWPORTS) {
   await geoPage.screenshot({ path: path.join(SHOTS, 'clock-' + label.split(' ')[0] + '.png') });
 }
 
-check('a cold load defaults to Black as the first mover', coldLoad.firstColour, 'Black');
+check('a cold load defaults to the first mover colour', coldLoad.firstColour, S.black);
 check('the clock page is translated on a cold load (move counter)',
   coldLoad.moves.length > 0, JSON.stringify(coldLoad.moves));
 check('the clock page is translated on a cold load (time-out heading)',

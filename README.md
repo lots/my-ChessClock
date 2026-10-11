@@ -9,11 +9,11 @@ JavaScript** on the **Framework7** framework.
 It runs from a local file on a PC, from a small local server that phones on the
 same wifi can open, or from any static web host.
 
-![Menu](docs/screens/menu-classic.png)
-![Clock, Black to move](docs/screens/clock-portrait-start.png)
-![Clock, landscape, flag fall](docs/screens/clock-landscape-flag.png)
-![Byo-yomi overtime](docs/screens/clock-byoyomi.png)
-![Clock, desktop](docs/screens/clock-desktop.png)
+![Menu](docs/screens/en/menu-classic.png)
+![Clock, Black to move](docs/screens/en/clock-portrait-start.png)
+![Clock, landscape, flag fall](docs/screens/en/clock-landscape-flag.png)
+![Byo-yomi overtime](docs/screens/en/clock-byoyomi.png)
+![Clock, desktop](docs/screens/en/clock-desktop.png)
 
 ---
 
@@ -63,7 +63,7 @@ npm install     # only needed for Framework7's source and the dev tools
 npm start       # http://localhost:8080
 ```
 
-![Menu on a desktop](docs/screens/menu-desktop.png)
+![Menu on a desktop](docs/screens/en/menu-desktop.png)
 
 ### On a phone or tablet
 
@@ -93,9 +93,9 @@ and no server-side code. It also works from a subfolder, because every path in
 Presets are offered for each mode, and any main time (1–180 min) with any bonus
 (0–600 s) can be set by hand. The chosen control is remembered on the device.
 
-![Byo-yomi presets](docs/screens/menu-byoyomi.png)
-![Byo-yomi overtime, portrait](docs/screens/clock-byoyomi-portrait.png)
-![Byo-yomi flag fall](docs/screens/clock-byoyomi-flag.png)
+![Byo-yomi presets](docs/screens/en/menu-byoyomi.png)
+![Byo-yomi overtime, portrait](docs/screens/en/clock-byoyomi-portrait.png)
+![Byo-yomi flag fall](docs/screens/en/clock-byoyomi-flag.png)
 
 ### How the clock is kept honest
 
@@ -134,19 +134,19 @@ overtime and the loss of each period with distinct tones.
 7. **Pause** for an arbiter interruption; **Reset** stops the clock and returns
    it to the tap-to-start state; the cross closes the display.
 
-![Menu, players and first move](docs/screens/menu-players.png)
+![Menu, players and first move](docs/screens/en/menu-players.png)
 
 The display has three states: tap-to-start (which **Reset** returns to), running,
 and paused for an arbiter interruption.
 
-![Clock, tap to start](docs/screens/clock-portrait-ready.png)
-![Clock, running](docs/screens/clock-portrait-running.png)
-![Clock, paused](docs/screens/clock-portrait-paused.png)
+![Clock, tap to start](docs/screens/en/clock-portrait-ready.png)
+![Clock, running](docs/screens/en/clock-portrait-running.png)
+![Clock, paused](docs/screens/en/clock-portrait-paused.png)
 
 Settings, and the help that ships inside the app:
 
-![Settings](docs/screens/settings.png)
-![About & Help](docs/screens/help.png)
+![Settings](docs/screens/en/settings.png)
+![About & Help](docs/screens/en/help.png)
 
 On a PC the same actions have keys while the clock is open:
 `A` / `1` / `Left` and `L` / `2` / `Right` press a side, `Space` pauses, `R`
@@ -158,7 +158,7 @@ resets, `F` flips the display, `Esc` closes.
 
 ### Bilingual interface (EN / 华文)
 
-![Menu, Chinese](docs/screens/menu-chinese.png)
+![Menu, Chinese](docs/screens/en/menu-chinese.png)
 
 The **Menu** page carries a two-part language button showing both languages at
 once; the active one is filled in. Everything else follows: menu, settings,
@@ -176,15 +176,15 @@ object and one entry to `I18n.available`.
 | **Midnight** | Near-black with a cyan accent — a dim hall, and kind to OLED battery |
 | **High Contrast** | Pure black, pure white, yellow accent — outdoor light and colour-blind friendly |
 
-![Menu, Classic](docs/screens/menu-classic.png)
-![Menu, Midnight](docs/screens/menu-midnight.png)
-![Menu, High Contrast](docs/screens/menu-contrast.png)
+![Menu, Classic](docs/screens/en/menu-classic.png)
+![Menu, Midnight](docs/screens/en/menu-midnight.png)
+![Menu, High Contrast](docs/screens/en/menu-contrast.png)
 
 The same clock face in each theme:
 
-![Clock, Classic](docs/screens/clock-portrait-start.png)
-![Clock, Midnight](docs/screens/clock-midnight.png)
-![Clock, High Contrast](docs/screens/clock-contrast.png)
+![Clock, Classic](docs/screens/en/clock-portrait-start.png)
+![Clock, Midnight](docs/screens/en/clock-midnight.png)
+![Clock, High Contrast](docs/screens/en/clock-contrast.png)
 
 Themes are pure CSS custom properties, one block per theme in `css/app.css`, and
 Framework7's own variables are remapped onto the same tokens so the framework's
@@ -216,6 +216,8 @@ artwork.
 
 ```text
 myChessClock/
+├── README.md                  this file (English)
+├── README_CHN.md              华语版说明
 ├── index.html                 app shell: meta, icon links, script order
 ├── manifest.webmanifest       home-screen metadata
 ├── sw.js                      offline cache (versioned, bump on release)
@@ -239,7 +241,8 @@ myChessClock/
 │   ├── vendor-framework7.mjs  copies the dist out of node_modules
 │   ├── clock-test.mjs         deterministic engine tests (npm test)
 │   └── verify-ui.mjs          drives the real UI in Chrome and screenshots it
-└── docs/screens/              screenshots used by this file, at 60% scale
+├── docs/screens/en/           English screenshots, at 60% scale
+└── docs/screens/zh/           华文 screenshots, at 60% scale
 ```
 
 Architecture in one line: **`clock.js` knows nothing about the DOM, `views.js`
@@ -257,7 +260,8 @@ npm test             # 87 deterministic checks on the timing engine
 npm run icons        # redraw the built-in default (keeps existing artwork)
 npm run vendor       # re-copy Framework7 out of node_modules
 
-node tools/verify-ui.mjs   # 182 UI checks in real Chrome + screenshots in .tmp/shots
+node tools/verify-ui.mjs                # 182 UI checks, English, shots -> .tmp/shots/en/
+LANG_MODE=zh node tools/verify-ui.mjs   # the same suite in 华文, shots -> .tmp/shots/zh/
 ```
 
 `tools/verify-ui.mjs` drives the real browser: it switches language and theme,
@@ -268,6 +272,12 @@ period-exhaustion flag, checks the layout exactly fills the viewport on seven
 screen sizes, walks every page and back, reloads to prove the settings persist,
 and fails on any console error or failed request. It needs Chrome or Edge
 installed, or `CHROME_PATH` set.
+
+The suite runs in either language. `LANG_MODE=zh` seeds 华文 and writes its
+screenshots to `.tmp/shots/zh/`, which is where every image in
+`README_CHN.md` comes from; the default English run feeds `README.md`. Both
+runs assert against a per-language expectation table, so a wrong translation
+fails the suite rather than quietly shipping.
 
 Both suites **compare values rather than testing truthiness**, so a changed
 string or a stale expectation fails the run instead of passing quietly.

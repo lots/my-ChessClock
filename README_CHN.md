@@ -6,11 +6,11 @@
 
 它既可以在 PC 上直接打开本地文件运行，也可以用一个小型本地服务器让同一 wifi 下的手机访问，或托管到任意静态网站空间。
 
-![Menu](docs/screens/menu-classic.png)
-![Clock, Black to move](docs/screens/clock-portrait-start.png)
-![Clock, landscape, flag fall](docs/screens/clock-landscape-flag.png)
-![Byo-yomi overtime](docs/screens/clock-byoyomi.png)
-![Clock, desktop](docs/screens/clock-desktop.png)
+![Menu](docs/screens/zh/menu-classic.png)
+![Clock, Black to move](docs/screens/zh/clock-portrait-start.png)
+![Clock, landscape, flag fall](docs/screens/zh/clock-landscape-flag.png)
+![Byo-yomi overtime](docs/screens/zh/clock-byoyomi.png)
+![Clock, desktop](docs/screens/zh/clock-desktop.png)
 
 ---
 
@@ -56,7 +56,7 @@ npm install     # 仅在需要 Framework7 源码与开发工具时执行
 npm start       # http://localhost:8080
 ```
 
-![Menu on a desktop](docs/screens/menu-desktop.png)
+![Menu on a desktop](docs/screens/zh/menu-desktop.png)
 
 ### 在手机或平板上
 
@@ -82,9 +82,9 @@ npm start       # http://localhost:8080
 
 每种模式都提供预设，也可以手工设定任意主时间（1–180 分钟）与任意加秒（0–600 秒）。所选时限会保存在本机。
 
-![Byo-yomi presets](docs/screens/menu-byoyomi.png)
-![Byo-yomi overtime, portrait](docs/screens/clock-byoyomi-portrait.png)
-![Byo-yomi flag fall](docs/screens/clock-byoyomi-flag.png)
+![Byo-yomi presets](docs/screens/zh/menu-byoyomi.png)
+![Byo-yomi overtime, portrait](docs/screens/zh/clock-byoyomi-portrait.png)
+![Byo-yomi flag fall](docs/screens/zh/clock-byoyomi-flag.png)
 
 ### 棋钟如何做到准确
 
@@ -106,18 +106,18 @@ npm start       # http://localhost:8080
 6. 轮到谁走棋，就由谁点按**自己那一半**完成交接。点按非活动那一半会被忽略。
 7. 裁判中断时用**暂停**；**重置**会停表并回到「点按开始」状态；叉号关闭显示。
 
-![Menu, players and first move](docs/screens/menu-players.png)
+![Menu, players and first move](docs/screens/zh/menu-players.png)
 
 显示区有三种状态：等待点按开始（点**重置**后回到此状态）、计时中、以及裁判中断导致的暂停。
 
-![Clock, tap to start](docs/screens/clock-portrait-ready.png)
-![Clock, running](docs/screens/clock-portrait-running.png)
-![Clock, paused](docs/screens/clock-portrait-paused.png)
+![Clock, tap to start](docs/screens/zh/clock-portrait-ready.png)
+![Clock, running](docs/screens/zh/clock-portrait-running.png)
+![Clock, paused](docs/screens/zh/clock-portrait-paused.png)
 
 设置页，以及随应用一同发布的帮助页：
 
-![Settings](docs/screens/settings.png)
-![About & Help](docs/screens/help.png)
+![Settings](docs/screens/zh/settings.png)
+![About & Help](docs/screens/zh/help.png)
 
 在 PC 上，棋钟打开时这些操作都有对应按键：`A` / `1` / `左方向键` 与 `L` / `2` / `右方向键` 点按某一方，`空格` 暂停，`R` 重置，`F` 翻转显示，`Esc` 关闭。
 
@@ -127,7 +127,7 @@ npm start       # http://localhost:8080
 
 ### 双语界面（EN / 华文）
 
-![Menu, Chinese](docs/screens/menu-chinese.png)
+![Menu, Chinese](docs/screens/zh/menu-chinese.png)
 
 **菜单**页上有一个同时展示两种语言的二段式语言按钮，当前语言为填充状态。其余部分随之切换：菜单、设置、帮助文本、棋钟本身、超时结语，以及数字的格式。选择按设备保存。首次访问会根据浏览器语言列表自动判断，默认回退到英文。所有文案都集中在 `js/i18n.js` 的单一字典里，因此新增第三种语言只需要增加一个对象和一条 `I18n.available` 记录。
 
@@ -139,15 +139,15 @@ npm start       # http://localhost:8080
 | **暗夜（Midnight）** | 近黑底配青色点缀 —— 昏暗的赛场，对 OLED 电池也友好 |
 | **高对比（High Contrast）** | 纯黑、纯白、黄色点缀 —— 适合户外光线，也照顾色觉障碍者 |
 
-![Menu, Classic](docs/screens/menu-classic.png)
-![Menu, Midnight](docs/screens/menu-midnight.png)
-![Menu, High Contrast](docs/screens/menu-contrast.png)
+![Menu, Classic](docs/screens/zh/menu-classic.png)
+![Menu, Midnight](docs/screens/zh/menu-midnight.png)
+![Menu, High Contrast](docs/screens/zh/menu-contrast.png)
 
 同一块表盘在三套主题下的样子：
 
-![Clock, Classic](docs/screens/clock-portrait-start.png)
-![Clock, Midnight](docs/screens/clock-midnight.png)
-![Clock, High Contrast](docs/screens/clock-contrast.png)
+![Clock, Classic](docs/screens/zh/clock-portrait-start.png)
+![Clock, Midnight](docs/screens/zh/clock-midnight.png)
+![Clock, High Contrast](docs/screens/zh/clock-contrast.png)
 
 主题完全是一组 CSS 自定义属性，在 `css/app.css` 中每套主题一个代码块；Framework7 自身的变量也被重新映射到同一组令牌上，因此框架的卡片、栏与开关同样跟随主题。新增第四套主题意味着增加一个 CSS 块、一条 `js/themes.js` 记录和一个翻译键。
 
@@ -170,6 +170,8 @@ npm start       # http://localhost:8080
 
 ```text
 myChessClock/
+├── README.md                  英文版说明
+├── README_CHN.md              本文件（华语）
 ├── index.html                 应用外壳：meta、图标链接、脚本顺序
 ├── manifest.webmanifest      主屏幕元数据
 ├── sw.js                      离线缓存（带版本号，发布时递增）
@@ -193,7 +195,8 @@ myChessClock/
 │   ├── vendor-framework7.mjs  从 node_modules 复制发行文件
 │   ├── clock-test.mjs         确定性的引擎测试（npm test）
 │   └── verify-ui.mjs          在 Chrome 中驱动真实界面并截图
-└── docs/screens/              本文档使用的截图，已缩放至 60%
+├── docs/screens/en/           英文截图，已缩放至 60%
+└── docs/screens/zh/           华文截图，已缩放至 60%
 ```
 
 一句话概括架构：**`clock.js` 完全不知道 DOM，`views.js` 完全不知道行为，`app.js` 持有状态并把两者接到 Framework7 上。** 正因如此，引擎可以在 Node 里脱离浏览器直接测试。
@@ -209,10 +212,13 @@ npm test             # 87 项计时引擎确定性检查
 npm run icons        # 重绘内置默认标志（保留现有图案）
 npm run vendor       # 从 node_modules 重新复制 Framework7
 
-node tools/verify-ui.mjs   # 182 项真实 Chrome 界面检查 + 截图存于 .tmp/shots
+node tools/verify-ui.mjs                # 182 项界面检查（英文），截图存于 .tmp/shots/en/
+LANG_MODE=zh node tools/verify-ui.mjs   # 同一套检查的华文运行，截图存于 .tmp/shots/zh/
 ```
 
 `tools/verify-ui.mjs` 驱动真实浏览器：切换语言与主题、载入 10+5 时限、启动棋钟、点按错误一侧以证明其被忽略、暂停并确认时间真的停住、重置并检查确认门、让一局 1.2 秒的对局超时、完整跑完一局读秒直到读秒次数用尽而超时、在七种屏幕尺寸下检查布局是否恰好铺满视口、走遍每个页面并返回、重新载入以证明设置被持久化，并且只要出现任何控制台错误或请求失败就判定失败。它需要本机装有 Chrome 或 Edge，或设置 `CHROME_PATH`。
+
+这套检查可以在两种语言下运行。`LANG_MODE=zh` 会以华文启动应用，并把截图写到 `.tmp/shots/zh/`，`README_CHN.md` 中的每一张图都来自这里；默认的英文运行则供给 `README.md`。两次运行都按一张按语言区分的预期表进行断言，因此翻译出错会直接让检查失败，而不会静默发布。
 
 两套测试都**比较取值，而不是测试真值性**，因此改动的字符串或过期的预期会让运行失败，而不是悄悄通过。
 
