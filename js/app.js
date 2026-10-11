@@ -33,10 +33,14 @@
     increment: [[3, 2], [5, 3], [10, 5], [15, 10], [25, 10], [60, 30], [90, 30]],
     delay:     [[3, 2], [5, 3], [10, 5], [25, 5], [30, 10], [60, 10]],
     // main minutes, number of periods, period seconds
-    byoyomi:   [[5, 3, 20], [10, 3, 30], [15, 3, 30], [20, 5, 30], [30, 5, 30], [30, 3, 60], [60, 5, 60]]
+    byoyomi:   [[5, 3, 20], [10, 3, 20], [10, 3, 30], [15, 3, 30], [20, 5, 30], [30, 5, 30], [30, 3, 60], [60, 5, 60]]
   };
 
-  var DEFAULT_CONTROL = { mode: 'simple', baseMs: 5 * 60000, bonusMs: 0, periods: 5, names: ['', ''] };
+  var DEFAULT_CONTROL = { mode: 'simple', baseMs: 5 * 60000, bonusMs: 0, periods: 5, first: 'black', names: ['', ''] };
+
+  // Seat 0 (the top half in portrait, the left half in landscape) is the player
+  // who moves first. In Weiqi that is Black; in chess, White.
+  var FIRST_SEAT = 0;
 
   /* ---------------------------------------------------------------- state */
 
@@ -45,6 +49,7 @@
   if (ChessClock.MODES.indexOf(control.mode) < 0) control.mode = 'simple';
   if (!Array.isArray(control.names)) control.names = ['', ''];
   control.periods = clampInt(control.periods, 1, 99, 5);
+  if (control.first !== 'black' && control.first !== 'white') control.first = 'black';
 
   var app = null;
   var clock = null;
@@ -90,15 +95,29 @@
       baseMs: control.baseMs,
       bonusMs: control.bonusMs,
       periods: control.periods,
+      first: control.first,
       names: [control.names[0] || '', control.names[1] || '']
     });
   }
 
   function saveSettings() { Store.set('cc.settings', settings); }
 
-  function playerName(i) {
-    var n = (control.names[i] || '').trim();
-    return n || I18n.t('clock.p' + (i + 1));
+  /** Which colour sits in a given seat: the first mover takes the setting. */
+  function sideColour(i) {
+    var first = control.first === 'white' ? 'white' : 'black';
+    if (i === FIRST_SEAT) return first;
+    return first === 'black' ? 'white' : 'black';
+  }
+
+  /** What the clock shows for a seat: the typed name, or a neutral placeholder. */
+  function clockName(snap, i) {
+    return (snap.config.names[i] || '').trim() || I18n.t('clock.noName');
+  }
+
+  /** Who a seat *is*, for the verdict. Falls back to the colour so that a flag
+   *  fall can never read as "--- ran out of time, --- wins". */
+  function clockIdentity(snap, i) {
+    return (snap.config.names[i] || '').trim() || I18n.t('side.' + sideColour(i));
   }
 
   /* ======================================================== menu page logic */
@@ -167,9 +186,16 @@
     });
   }
 
+  function renderFirst() {
+    $$('[data-seg="first"] .button', menu.page).forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-first') === control.first);
+    });
+  }
+
   function renderControlUI() {
     if (!menu.page) return;
     renderLang();
+    renderFirst();
     renderThemes();
     renderModeRow();
     renderPresets();
@@ -203,6 +229,15 @@
 
     $$('[data-seg="theme"] .cc-theme', page).forEach(function (b) {
       b.addEventListener('click', function () { Themes.set(b.getAttribute('data-theme-id')); });
+    });
+
+    $$('[data-seg="first"] .button', page).forEach(function (b) {
+      b.addEventListener('click', function () {
+        control.first = b.getAttribute('data-first');
+        saveControl();
+        renderFirst();
+        renderClock(clock.snapshot());
+      });
     });
 
     $$('[data-seg="mode"] .button', page).forEach(function (b) {
@@ -385,8 +420,20 @@
       var side = els.sides[i];
       if (!side) continue;
       var nameEl = $('.cc-name', side);
-      var label = (snap.config.names[i] || '').trim() || I18n.t('clock.p' + (i + 1));
+      var label = clockName(snap, i);
       if (nameEl.textContent !== label) nameEl.textContent = label;
+
+      // Colour badge and the "whose side to tap" hint both follow the setting.
+      var colour = sideColour(i);
+      var colourText = I18n.t('side.' + colour);
+      var colourEl = $('.cc-colour', side);
+      if (colourEl.textContent !== colourText) colourEl.textContent = colourText;
+      side.classList.toggle('is-black', colour === 'black');
+      side.classList.toggle('is-white', colour === 'white');
+
+      var hintEl = $('.cc-side-hint', side);
+      var hint = I18n.t('clock.readySide', { side: colourText });
+      if (hintEl.textContent !== hint) hintEl.textContent = hint;
 
       var timeEl = $('.cc-time', side);
       var text = snap.text[i];
@@ -454,14 +501,14 @@
   function renderFlagPanel(snap) {
     var loser = snap.flagged;
     var winner = loser === 0 ? 1 : 0;
-    var loserName = (snap.config.names[loser] || '').trim() || I18n.t('clock.p' + (loser + 1));
-    var winnerName = (snap.config.names[winner] || '').trim() || I18n.t('clock.p' + (winner + 1));
+    var loserName = clockIdentity(snap, loser);
+    var winnerName = clockIdentity(snap, winner);
     // A player who runs out of byo-yomi periods lost on the clock too, but the
     // verdict should say so in the terms of the time control being used.
     var verdict = (snap.inByo && snap.inByo[loser]) ? 'clock.flagBodyByo' : 'clock.flagBody';
     $('#cc-flag-body').textContent = I18n.t(verdict, { loser: loserName, winner: winnerName });
     $('#cc-flag-times').innerHTML = [0, 1].map(function (i) {
-      var n = (snap.config.names[i] || '').trim() || I18n.t('clock.p' + (i + 1));
+      var n = clockIdentity(snap, i);
       return '<div class="cc-flag-time' + (i === loser ? ' is-flagged' : '') + '">' +
         '<span>' + esc(n) + '</span><b>' + esc(snap.text[i]) + '</b></div>';
     }).join('');
@@ -478,7 +525,7 @@
       baseMs: control.baseMs,
       bonusMs: control.mode === 'simple' ? 0 : control.bonusMs,
       periods: control.periods,
-      names: [playerName(0), playerName(1)]
+      names: [(control.names[0] || '').trim(), (control.names[1] || '').trim()]
     });
     lastLen = [0, 0];
     Sound.unlock();
@@ -564,7 +611,13 @@
       closeByBackdrop: false,
       animate: true,
       on: {
-        popupOpen: function () { requestAnimationFrame(function () { renderClock(clock.snapshot()); fitTimes(); }); },
+        popupOpen: function () {
+          // A game starts the moment the display is up, with the first mover's
+          // clock already running - the same thing as pressing RUN on a
+          // physical clock after it has been placed.
+          if (clock.status === 'ready') clock.press(FIRST_SEAT);
+          requestAnimationFrame(function () { renderClock(clock.snapshot()); fitTimes(); });
+        },
         popupClose: function () {
           if (clock.status === 'running' || clock.status === 'paused') clock.pause();
           WakeLock.release();

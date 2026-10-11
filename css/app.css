@@ -375,6 +375,8 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
 .cc-input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 .cc-players { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: end; }
+.cc-first { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.cc-first .cc-label { flex: none; }
 /* Framework7 resets input padding and background with input[type="..."]
    selectors, which outrank a bare class. Matching that specificity is what lets
    the theme's own field styling through. */
@@ -577,13 +579,27 @@ input.cc-input-text {
 /* Face-to-face: the opponent reads their own half from the other side of the table. */
 .cc-stage[data-rot="on"] .cc-side[data-side="1"] .cc-side-inner { transform: rotate(180deg); }
 
+/* Colour badge: Black / White, in front of the player's name. */
+.cc-colour {
+  flex: none;
+  padding: .18em .5em;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-weight: 800;
+  letter-spacing: .06em;
+  font-size: max(10px, 1.9vmin);
+  opacity: .92;
+}
+.cc-colour:empty { display: none; }
+.cc-name:empty { display: none; }
+
 .cc-side-top {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: .8vmin;
   /* Must be a definite width, otherwise the name's max-width resolves against
-     the row's own shrink-to-fit width and clips even "Player 1". */
+     the row's own shrink-to-fit width and clips even a short default name. */
   width: 100%;
   max-width: 100%;
 }

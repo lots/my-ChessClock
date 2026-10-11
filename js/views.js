@@ -140,12 +140,19 @@
           '<div class="cc-players">' +
             '<div class="cc-field">' +
               '<label class="cc-label" for="cc-name0" data-i18n="players.p1"></label>' +
-              '<input class="cc-input cc-input-text" id="cc-name0" type="text" maxlength="24" autocomplete="off" data-i18n-ph="players.p1">' +
+              '<input class="cc-input cc-input-text" id="cc-name0" type="text" maxlength="24" autocomplete="off" data-i18n-ph="players.namePlaceholder">' +
             '</div>' +
             '<button type="button" class="cc-swap" id="cc-swap" data-i18n-title="players.swap">' + icon('swap') + '</button>' +
             '<div class="cc-field">' +
               '<label class="cc-label" for="cc-name1" data-i18n="players.p2"></label>' +
-              '<input class="cc-input cc-input-text" id="cc-name1" type="text" maxlength="24" autocomplete="off" data-i18n-ph="players.p2">' +
+              '<input class="cc-input cc-input-text" id="cc-name1" type="text" maxlength="24" autocomplete="off" data-i18n-ph="players.namePlaceholder">' +
+            '</div>' +
+          '</div>' +
+          '<div class="cc-first">' +
+            '<span class="cc-label" data-i18n="players.first"></span>' +
+            '<div class="segmented cc-seg" data-seg="first">' +
+              '<button type="button" class="button" data-first="black" data-i18n="side.black"></button>' +
+              '<button type="button" class="button" data-first="white" data-i18n="side.white"></button>' +
             '</div>' +
           '</div>' +
         '</div></div>' +
@@ -257,13 +264,14 @@
   function side(index) {
     return '<section class="cc-side" data-side="' + index + '">' +
       '<div class="cc-side-inner">' +
-        '<div class="cc-side-top"><span class="cc-name"></span>' +
+        '<div class="cc-side-top"><span class="cc-colour"></span>' +
+          '<span class="cc-name"></span>' +
           '<span class="cc-side-state">' + icon('play', 'cc-state-play') + '</span></div>' +
         '<div class="cc-time-wrap"><span class="cc-time">00:00</span></div>' +
         '<div class="cc-side-bottom"><span class="cc-moves"><b class="cc-move-count">0</b> ' +
           '<span class="cc-moves-word" data-i18n="clock.moves"></span></span>' +
           '<span class="cc-byo" hidden></span>' +
-          '<span class="cc-side-hint" data-i18n="clock.ready"></span></div>' +
+          '<span class="cc-side-hint"></span></div>' +
       '</div>' +
     '</section>';
   }

@@ -150,6 +150,18 @@ clock.refresh();
 check('final seconds are announced', warnings, [10]);
 clock.destroy();
 
+/* ------------------------------------------------- names can be set to none */
+
+clock = create();
+clock.configure({ mode: 'simple', baseMs: 60000, names: ['A', 'B'] });
+check('names are stored as given', clock.snapshot().config.names, ['A', 'B']);
+clock.configure({ mode: 'simple', baseMs: 60000 });
+check('omitting names leaves the current ones alone', clock.snapshot().config.names, ['A', 'B']);
+clock.configure({ mode: 'simple', baseMs: 60000, names: ['', ''] });
+check('an empty name clears the seat instead of falling back',
+  clock.snapshot().config.names, ['', '']);
+clock.destroy();
+
 /* ----------------------------------------------------------------- byo-yomi */
 
 let byo = create();

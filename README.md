@@ -8,7 +8,7 @@ It runs from a local file on a PC, from a small local server that phones on the
 same wifi can open, or from any static web host.
 
 ![Menu](docs/menu-classic.png)
-![Clock, portrait](docs/clock-portrait-ready.png)
+![Clock, Black to move](docs/clock-portrait-start.png)
 ![Clock, landscape, flag fall](docs/clock-landscape-flag.png)
 ![Byo-yomi overtime](docs/clock-byoyomi.png)
 ![Clock, desktop](docs/clock-desktop.png)
@@ -61,6 +61,8 @@ npm install     # only needed for Framework7's source and the dev tools
 npm start       # http://localhost:8080
 ```
 
+![Menu on a desktop](docs/menu-desktop.png)
+
 ### On a phone or tablet
 
 1. Start the server on the PC with `npm start`.
@@ -84,10 +86,14 @@ and no server-side code. It also works from a subfolder, because every path in
 | **Simple** | One fixed amount of time each, no bonus. The first clock to reach zero flags. | School and beginner events |
 | **Increment (Fischer)** | The player who has just moved receives +N seconds. The bonus is credited **after** the move, exactly as a digital clock does. | 3+2, 5+3, 10+5, 90+30 — the modern standard |
 | **Delay (Bronstein)** | Every move begins with N free seconds. The main clock only starts running once that head start is used up; move within it and nothing is consumed. | 10+5d, 25+5d — protects a short-of-time player |
-| **Byo-yomi** | Japanese overtime, taken from Go. Once the main time is gone, every move gets a fresh countdown of X seconds, and each player holds N periods. Using a period up costs that period, not the game; the move simply restarts with the next one. Running out of periods is a loss. | 30+5×30s, 20+3×30s — for organisers who also run Go, or who want a gentler overtime than sudden death |
+| **Byo-yomi** | Japanese overtime, taken from Go. Once the main time is gone, every move gets a fresh countdown of X seconds, and each player holds N periods. Using a period up costs that period, not the game; the move simply restarts with the next one. Running out of periods is a loss. | 10+3×20s, 30+5×30s — for organisers who also run Go, or who want a gentler overtime than sudden death |
 
 Presets are offered for each mode, and any main time (1–180 min) with any bonus
 (0–600 s) can be set by hand. The chosen control is remembered on the device.
+
+![Byo-yomi presets](docs/menu-byoyomi.png)
+![Byo-yomi overtime, portrait](docs/clock-byoyomi-portrait.png)
+![Byo-yomi flag fall](docs/clock-byoyomi-flag.png)
 
 ### How the clock is kept honest
 
@@ -114,13 +120,31 @@ overtime and the loss of each period with distinct tones.
 ## 4. Running a round
 
 1. Pick the **language**, **colour theme** and **time control** on the menu.
-2. Type the players' names if you want them shown (`Player 1/2` is the default).
-3. Press **START**. The display opens full screen.
-4. Put the device flat **between** the two players and leave
-   *Face-to-face rotation* on, so each side reads its own half upright.
-5. The player on move taps **their own half** to hand the move over.
-6. **Pause** for an arbiter interruption; **Reset** starts a fresh game; the
-   cross closes the display.
+2. Type the players' names if you want them shown; an unnamed seat shows `---`.
+3. Choose **who moves first** — Black by default, which is the Weiqi
+   convention, or White for chess. Player 1 takes that colour.
+4. Put the device flat **between** the two players and leave *Face-to-face
+   rotation* on, so each side reads its own half upright.
+5. Press **START**. The first mover's clock begins running immediately, exactly
+   as pressing RUN on a physical clock does — so place the device *first*.
+6. The player on move taps **their own half** to hand the move over. A tap on
+   the half that is not on move is ignored.
+7. **Pause** for an arbiter interruption; **Reset** stops the clock and returns
+   it to the tap-to-start state; the cross closes the display.
+
+![Menu, players and first move](docs/menu-players.png)
+
+The display has three states: tap-to-start (which **Reset** returns to), running,
+and paused for an arbiter interruption.
+
+![Clock, tap to start](docs/clock-portrait-ready.png)
+![Clock, running](docs/clock-portrait-running.png)
+![Clock, paused](docs/clock-portrait-paused.png)
+
+Settings, and the help that ships inside the app:
+
+![Settings](docs/settings.png)
+![About & Help](docs/help.png)
 
 On a PC the same actions have keys while the clock is open:
 `A` / `1` / `Left` and `L` / `2` / `Right` press a side, `Space` pauses, `R`
@@ -156,7 +180,7 @@ object and one entry to `I18n.available`.
 
 The same clock face in each theme:
 
-![Clock, Classic](docs/clock-portrait-ready.png)
+![Clock, Classic](docs/clock-portrait-start.png)
 ![Clock, Midnight](docs/clock-midnight.png)
 ![Clock, High Contrast](docs/clock-contrast.png)
 
@@ -176,9 +200,13 @@ The app references exactly **two** files:
 
 Overwrite those two files after deployment — same names, same sizes — and the
 tab icon, the home-screen icon, the menu logo, the mark in the middle of the
-clock's control bar and the About page all change together. No rebuild, no code edit. See `icons/README.md` for the details,
-including the maskable safe area, and `npm run icons` to regenerate the default
-artwork from `tools/generate-icons.mjs`.
+clock's control bar and the About page all change together. No rebuild, no code edit.
+See `icons/README.md` for the details, including the maskable safe area.
+
+`npm run icons` redraws the *built-in* default mark from
+`tools/generate-icons.mjs`, and deliberately refuses to overwrite existing files:
+run `npm run icons -- --force` only if you really mean to discard the current
+artwork.
 
 ---
 
@@ -199,8 +227,8 @@ myChessClock/
 │   ├── views.js               HTML for every screen
 │   └── app.js                 controller: Framework7, routing, wiring
 ├── icons/
-│   ├── icon-48.png            ← replace me
-│   ├── icon-96.png            ← replace me
+│   ├── icon-48.png            ← the brand: swap these two files
+│   ├── icon-96.png            ← to re-brand the whole app
 │   └── README.md              how to rebrand
 ├── vendor/framework7/         vendored Framework7 (works offline and from file://)
 ├── tools/
@@ -223,20 +251,21 @@ Framework7.** That is why the engine can be tested in Node without a browser.
 ```bash
 npm install          # Framework7 source + puppeteer-core (dev only)
 npm start            # serve on http://localhost:8080
-npm test             # 84 deterministic checks on the timing engine
-npm run icons        # regenerate icons/icon-48.png and icon-96.png
+npm test             # 87 deterministic checks on the timing engine
+npm run icons        # redraw the built-in default (keeps existing artwork)
 npm run vendor       # re-copy Framework7 out of node_modules
 
-node tools/verify-ui.mjs   # 102 UI checks in real Chrome + screenshots in .tmp/shots
+node tools/verify-ui.mjs   # 182 UI checks in real Chrome + screenshots in .tmp/shots
 ```
 
 `tools/verify-ui.mjs` drives the real browser: it switches language and theme,
 loads a 10+5 control, starts the clock, taps the wrong side to prove it is
-ignored, pauses and checks that time really stops, flags a 1.2-second game,
-runs a whole byo-yomi game down to a period-exhaustion flag, walks every page
-and back, reloads to prove the settings persist, and fails on any console
-error or failed request. It needs Chrome or Edge installed, or
-`CHROME_PATH` set.
+ignored, pauses and checks that time really stops, resets and checks the
+confirmation gate, flags a 1.2-second game, runs a whole byo-yomi game down to a
+period-exhaustion flag, checks the layout exactly fills the viewport on seven
+screen sizes, walks every page and back, reloads to prove the settings persist,
+and fails on any console error or failed request. It needs Chrome or Edge
+installed, or `CHROME_PATH` set.
 
 Both suites **compare values rather than testing truthiness**, so a changed
 string or a stale expectation fails the run instead of passing quietly.

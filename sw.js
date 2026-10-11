@@ -5,7 +5,7 @@
  * precached on first load. The cache name is versioned; bump it when you change
  * any file and the old cache is dropped on the next activation.
  */
-const CACHE = 'coq-chess-clock-v3';
+const CACHE = 'coq-chess-clock-v5';
 
 const ASSETS = [
   './',

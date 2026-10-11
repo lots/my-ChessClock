@@ -68,6 +68,7 @@ const check = (name, actual, expected) => {
     detail = ok ? '' : 'expected ' + e + ', got ' + a;
   }
   results.push({ name, ok, detail });
+  if (process.env.VERBOSE) console.log((ok ? '  ok   ' : '  FAIL ') + name + (ok ? '' : '  [' + detail + ']'));
   if (!ok) problems.push(name + (detail ? ' -> ' + detail : ''));
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -116,9 +117,31 @@ async function shot(name, viewport) {
 }
 
 async function tap(selector) {
-  await page.waitForSelector(selector, { visible: true, timeout: 5000 });
-  await page.click(selector);
-  await sleep(240);
+  try {
+    await page.waitForSelector(selector, { visible: true, timeout: 5000 });
+    // Puppeteer only scrolls a target just far enough to be on screen, which can
+    // leave it underneath the opaque navbar. Centre it, then refuse to click
+    // through whatever is on top: a silently mis-aimed click is the kind of bug
+    // that makes an entire suite lie.
+    await page.$eval(selector, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
+    await sleep(90);
+    const blocked = await page.$eval(selector, (el) => {
+      const r = el.getBoundingClientRect();
+      const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      if (!top) return 'nothing (off screen?)';
+      if (top === el || el.contains(top)) return null;
+      return top.tagName + '.' + String(top.className).slice(0, 60);
+    });
+    if (blocked) problems.push('tap target ' + selector + ' is covered by ' + blocked);
+    await page.click(selector);
+    await sleep(240);
+    return !blocked;
+  } catch (err) {
+    // A missing element is a failed step, not a reason to abandon the run: the
+    // rest of the suite still reports, which is what makes it diagnosable.
+    problems.push('could not tap ' + selector + ' (' + String(err.message).split('\n')[0] + ')');
+    return false;
+  }
 }
 
 /* ------------------------------------------------------------- boot & menu */
@@ -205,6 +228,23 @@ check('delay mode relabels the bonus field',
 await tap('[data-mode="increment"]');
 await tap('[data-preset="10-5"]');
 
+/* the first mover */
+check('the menu offers a first-to-move choice',
+  await page.$$eval('[data-seg="first"] .button', (els) => els.map((e) => e.textContent.trim())),
+  ['Black', 'White']);
+check('Black moves first by default',
+  await page.$eval('[data-first="black"]', (el) => el.classList.contains('active')), true);
+await tap('[data-first="white"]');
+check('switching the first mover to White re-labels both halves',
+  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), ['White', 'Black']);
+await tap('[data-first="black"]');
+check('and switching back puts Black first again',
+  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), ['Black', 'White']);
+
+check('both name fields show the neutral placeholder',
+  await page.$$eval('#cc-name0, #cc-name1', (els) => els.map((e) => e.getAttribute('placeholder'))),
+  ['---', '---']);
+
 await page.type('#cc-name0', 'Wei');
 await page.type('#cc-name1', 'Anand');
 await shot('menu-phone-configured', PHONE);
@@ -215,13 +255,19 @@ await tap('#cc-start');
 await sleep(500);
 check('the clock display opened',
   await page.$eval('#cc-clock', (el) => el.classList.contains('modal-in')), true);
-check('the clock starts in the ready state',
-  await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'ready');
+check('the game starts the moment the display opens',
+  await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'running');
 check('both player names reach the display',
   await page.$$eval('.cc-name', (els) => els.map((e) => e.textContent.trim())), ['Wei', 'Anand']);
-check('the configured control is shown',
-  await page.$eval('.cc-time', (el) => el.textContent.trim()), '10:00');
-await shot('clock-portrait-ready', PHONE);
+check('the halves are labelled Black and White',
+  await page.$$eval('.cc-colour', (els) => els.map((e) => e.textContent.trim())), ['Black', 'White']);
+check('the first mover, Black, is the one on the clock',
+  await page.$$eval('.cc-side', (sides) => sides.map((s) => s.classList.contains('is-active'))), [true, false]);
+check('Black is already spending time',
+  await page.$eval('.cc-side[data-side="0"] .cc-time', (el) => el.textContent.trim() !== '10:00'), true);
+check('while White has not been touched yet',
+  await page.$eval('.cc-side[data-side="1"] .cc-time', (el) => el.textContent.trim()), '10:00');
+await shot('clock-portrait-start', PHONE);
 
 const fits = await page.$$eval('.cc-side', (sides) => sides.map((s) => {
   const time = s.querySelector('.cc-time');
@@ -234,33 +280,35 @@ check('the digits fit their half of the display',
 const nameFits = await page.$$eval('.cc-name', (els) => els.map((e) => e.scrollWidth <= e.clientWidth + 1));
 check('long player names are clipped rather than overflowing', nameFits.every(Boolean));
 
-/* a tap on the half of the player on move starts that clock */
+/* the hand-over: tapping the half that is on move passes the turn over */
 await page.click('.cc-side[data-side="0"]');
-await sleep(1300);
-const afterStart = await page.evaluate(() => ({
+await sleep(900);
+const handover = await page.evaluate(() => ({
   status: document.querySelector('#cc-stage').getAttribute('data-status'),
-  active: !!document.querySelector('.cc-side[data-side="0"]').classList.contains('is-active'),
-  text: document.querySelector('.cc-side[data-side="0"] .cc-time').textContent.trim()
+  blackActive: document.querySelector('.cc-side[data-side="0"]').classList.contains('is-active'),
+  whiteActive: document.querySelector('.cc-side[data-side="1"]').classList.contains('is-active'),
+  blackMoves: document.querySelector('.cc-side[data-side="0"] .cc-move-count').textContent.trim(),
+  whiteTime: document.querySelector('.cc-side[data-side="1"] .cc-time').textContent.trim()
 }));
-check('tapping a half starts that clock', afterStart.status, 'running');
-check('the tapped half is marked active', afterStart.active, true);
-check('the running clock counts down', afterStart.text !== '10:00', afterStart.text);
+check('the hand-over keeps the game running', handover.status, 'running');
+check('Black comes off the clock', handover.blackActive, false);
+check('White goes on the clock', handover.whiteActive, true);
+check('Black is credited with the move', handover.blackMoves, '1');
+check('White starts spending time', handover.whiteTime !== '10:00', handover.whiteTime);
+
+const blackFrozen = await page.$eval('.cc-side[data-side="0"] .cc-time', (el) => el.textContent.trim());
+await sleep(1200);
+check('the half that is off the clock does not move',
+  await page.$eval('.cc-side[data-side="0"] .cc-time', (el) => el.textContent.trim()), blackFrozen);
 await shot('clock-portrait-running');
 
-/* an idle-half tap must be refused */
-await page.click('.cc-side[data-side="0"]');
-await sleep(300);
-check('the turn moved to the opponent',
-  await page.$eval('.cc-side[data-side="1"]', (el) => el.classList.contains('is-active')), true);
-const beforeIdleTap = await page.evaluate(() => document.querySelector('.cc-side[data-side="1"] .cc-time').textContent.trim());
+/* a tap on the half that is not on move must be refused */
 await page.click('.cc-side[data-side="0"]');
 await sleep(250);
 check('tapping the idle half is ignored',
   await page.$eval('.cc-side[data-side="1"]', (el) => el.classList.contains('is-active')), true);
-check('and no move is credited for it',
+check('and no extra move is credited for it',
   await page.$eval('.cc-side[data-side="0"] .cc-move-count', (el) => el.textContent.trim()), '1');
-check('the idle half kept the time it was not using',
-  beforeIdleTap !== null, true);
 
 /* pause */
 await page.click('.cc-mid-btn[data-act="pause"]');
@@ -277,6 +325,30 @@ await shot('clock-portrait-paused', PHONE);
 
 await page.click('.cc-mid-btn[data-act="pause"]');
 await sleep(300);
+
+/* reset: back to the tap-to-start state, after confirming */
+await tap('.cc-mid-btn[data-act="reset"]');
+await page.waitForSelector('.dialog-buttons .dialog-button', { visible: true, timeout: 4000 });
+check('reset asks first instead of clearing a running game',
+  await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'running');
+await page.click('.dialog-buttons .dialog-button:last-child');
+await sleep(450);
+check('confirming returns the clock to the tap-to-start state',
+  await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'ready');
+check('with both clocks restored in full',
+  await page.$$eval('.cc-time', (els) => els.map((e) => e.textContent.trim())), ['10:00', '10:00']);
+check('and the hint names whose side starts it',
+  await page.$eval('.cc-side[data-side="0"] .cc-side-hint', (el) => el.textContent.trim()),
+  'Tap Black\u2019s side to start');
+check('the other half shows the move counter instead',
+  await page.$eval('.cc-side[data-side="0"] .cc-move-count', (el) => el.textContent.trim()), '0');
+await shot('clock-portrait-ready', PHONE);
+
+/* start a fresh game so the sections below see a live clock */
+await page.click('.cc-side[data-side="0"]');
+await sleep(250);
+check('and it starts again from the tap', 
+  await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'running');
 
 /* landscape */
 await page.setViewport(LANDSCAPE);
@@ -356,21 +428,25 @@ check('leaving a live game asks for confirmation and closes the clock',
 
 await tap('#cc-start');
 await sleep(600);
-check('starting again gives a brand new clock, not the paused old one',
-  await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'ready');
+check('starting again gives a brand new, already running clock',
+  await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'running');
 // START rebuilds the clock from the menu control (10+5), not from whatever the
 // abandoned game had been configured to via the debug handle.
 check('starting again rebuilds from the menu control, not the abandoned game',
-  await page.$$eval('.cc-time', (els) => els.map((e) => e.textContent.trim())), ['10:00', '10:00']);
+  await page.$eval('.cc-side[data-side="1"] .cc-time', (el) => el.textContent.trim()), '10:00');
+check('and the first mover starts it off',
+  await page.$$eval('.cc-side', (sides) => sides.map((s) => s.classList.contains('is-active'))), [true, false]);
 check('and the badges agree with the menu',
   await page.$eval('#cc-summary', (el) => el.textContent.trim()), '10+5');
 check('and the move counters cleared',
   await page.$$eval('.cc-move-count', (els) => els.map((e) => e.textContent.trim())), ['0', '0']);
 
-/* leave the clock */
+/* leave the clock - it is running, so it asks before abandoning the game */
 await page.setViewport(PHONE);
 await sleep(300);
 await tap('.cc-mid-btn[data-act="exit"]');
+await page.waitForSelector('.dialog-buttons .dialog-button', { visible: true, timeout: 4000 });
+await page.click('.dialog-buttons .dialog-button:last-child');
 await sleep(500);
 check('the clock closes back to the menu',
   await page.$eval('#cc-clock', (el) => !el.classList.contains('modal-in')), true);
@@ -378,6 +454,23 @@ check('the clock closes back to the menu',
 /* ------------------------------------------------------------- byo-yomi */
 
 await tap('[data-mode="byoyomi"]');
+if (process.env.VERBOSE) {
+  console.log('DIAG ' + JSON.stringify(await page.evaluate(() => {
+    const b = document.querySelector('[data-mode="byoyomi"]');
+    const r = b ? b.getBoundingClientRect() : null;
+    const top = r ? document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) : null;
+    return {
+      mode: window.ChessClockApp.control().mode,
+      pages: Array.from(document.querySelectorAll('.page')).map((p) => p.getAttribute('data-name') + (p.classList.contains('page-current') ? '*' : '')),
+      byoButtons: document.querySelectorAll('[data-mode="byoyomi"]').length,
+      modalIn: Array.from(document.querySelectorAll('.modal-in')).map((m) => m.id || m.className),
+      dialogs: document.querySelectorAll('.dialog').length,
+      rect: r ? { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) } : null,
+      onTop: top ? top.tagName + '.' + String(top.className).slice(0, 60) : 'none',
+      viewport: window.innerWidth + 'x' + window.innerHeight
+    };
+  })));
+}
 check('byo-yomi can be selected in the mode row',
   await page.$eval('[data-mode="byoyomi"]', (el) => el.classList.contains('active')), true);
 check('byo-yomi really shows all three fields',
@@ -388,6 +481,17 @@ check('the bonus field is relabelled as the period length',
   await page.$eval('#cc-bonus-label', (el) => el.textContent.trim()), 'Period (sec)');
 check('the byo-yomi mode explains itself',
   (await page.$eval('#cc-mode-desc', (el) => el.textContent.trim())).indexOf('Go') >= 0, 'ok');
+
+check('the byo-yomi presets include 10+3x20',
+  (await page.$$eval('.cc-preset', (els) => els.map((e) => e.getAttribute('data-preset')))).indexOf('10-3-20') >= 0,
+  JSON.stringify(await page.$$eval('.cc-preset', (els) => els.map((e) => e.getAttribute('data-preset')))));
+await tap('[data-preset="10-3-20"]');
+check('picking 10+3x20 sets the badge',
+  await page.$eval('#cc-summary', (el) => el.textContent.trim()), '10+3\u00d720s');
+check('and fills in 3 periods of 20 seconds',
+  await page.$$eval('.cc-fields .cc-field:not(.is-hidden) .cc-input', (els) => els.map((e) => e.value)), ['10', '20', '3']);
+check('with that preset shown as the active one',
+  await page.$$eval('.cc-preset.is-active', (els) => els.map((e) => e.textContent.trim())), ['10+3\u00d720']);
 
 await tap('[data-preset="10-3-30"]');
 check('a byo-yomi preset sets the main time',
@@ -407,9 +511,11 @@ await shot('menu-phone-byoyomi', PHONE);
 
 await tap('#cc-start');
 await sleep(500);
-check('the byo-yomi clock opens on the main time',
-  await page.$eval('.cc-side[data-side="0"] .cc-time', (el) => el.textContent.trim()), '10:00');
-check('with no period readout until overtime starts',
+check('a byo-yomi game also starts immediately',
+  await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'running');
+check('with Black on the clock and full main time',
+  await page.$$eval('.cc-side', (sides) => sides.map((s) => s.classList.contains('is-active'))), [true, false]);
+check('and no period readout until overtime starts',
   await page.$eval('.cc-side[data-side="0"] .cc-byo', (el) => el.hidden), true);
 
 /* A realistic overtime display: 30-second periods, so the digits stay calm. */
@@ -434,7 +540,7 @@ await sleep(300);
 await page.evaluate(() => {
   const c = window.ChessClockApp.clock();
   c.reset();
-  c.configure({ mode: 'byoyomi', baseMs: 2000, bonusMs: 2000, periods: 3, names: ['Wei', 'Anand'] });
+  c.configure({ mode: 'byoyomi', baseMs: 2000, bonusMs: 2000, periods: 3, names: ['', ''] });
 });
 await page.click('.cc-side[data-side="0"]');
 await sleep(2400);
@@ -454,9 +560,9 @@ check('letting a period expire lowers the readout',
 await sleep(4200);
 check('using up every period flags the player',
   await page.$eval('#cc-stage', (el) => el.getAttribute('data-status')), 'flagged');
-check('and the verdict is phrased in byo-yomi terms',
+check('and the verdict is phrased in byo-yomi terms, naming the colours when no name was typed',
   await page.$eval('#cc-flag-body', (el) => el.textContent.trim()),
-  'Wei ran out of byo-yomi periods. Anand wins.');
+  'Black ran out of byo-yomi periods. White wins.');
 await shot('clock-portrait-byoyomi-flag', PHONE);
 await tap('#cc-backmenu');
 await sleep(500);
@@ -529,6 +635,7 @@ const stored = await page.evaluate(() => ({
 check('the language choice is persisted', !!stored.lang, JSON.stringify(stored.lang));
 check('the theme choice is persisted', stored.theme, 'classic');
 check('the time control is persisted', stored.control && stored.control.baseMs, 600000);
+check('the first mover is persisted', stored.control && stored.control.first, 'black');
 check('the settings are persisted', stored.settings && stored.settings.faceToFace, true);
 
 /* reload once to prove the choices come back */
@@ -629,6 +736,7 @@ for (const [label, viewport] of GEO_VIEWPORTS) {
       popup: { x: Math.round(p.x), y: Math.round(p.y), w: Math.round(p.width), h: Math.round(p.height) },
       buttons, sides,
       logo: !!img && img.getBoundingClientRect().width > 0,
+      firstColour: (document.querySelector('.cc-side[data-side="0"] .cc-colour') || {}).textContent.trim(),
       texts: {
         moves: (document.querySelector('.cc-moves-word') || {}).textContent.trim(),
         flag: (document.querySelector('.cc-flag-title') || {}).textContent.trim(),
@@ -637,7 +745,7 @@ for (const [label, viewport] of GEO_VIEWPORTS) {
       }
     };
   });
-  coldLoad = geo.texts;
+  coldLoad = Object.assign({ firstColour: geo.firstColour }, geo.texts);
 
   check('the clock exactly covers the viewport at ' + label,
     geo.popup.x === 0 && geo.popup.y === 0 && geo.popup.w === geo.vw && geo.popup.h === geo.vh,
@@ -650,12 +758,15 @@ for (const [label, viewport] of GEO_VIEWPORTS) {
     geo.buttons.every((b) => b.title.length > 0),
     JSON.stringify(geo.buttons.map((b) => b.act + ':' + (b.title || 'NO TITLE'))));
   check('the clock page shows the app logo at ' + label, geo.logo, true);
+  check('an unnamed seat shows the neutral placeholder at ' + label,
+    geo.names.every((n) => n.text === '---'), JSON.stringify(geo.names));
   check('the default player names are not clipped at ' + label,
     geo.names.length === 2 && geo.names.every((n) => n.fits),
     JSON.stringify(geo.names));
   await geoPage.screenshot({ path: path.join(SHOTS, 'clock-' + label.split(' ')[0] + '.png') });
 }
 
+check('a cold load defaults to Black as the first mover', coldLoad.firstColour, 'Black');
 check('the clock page is translated on a cold load (move counter)',
   coldLoad.moves.length > 0, JSON.stringify(coldLoad.moves));
 check('the clock page is translated on a cold load (time-out heading)',

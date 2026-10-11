@@ -350,8 +350,12 @@
           config.periods = clamp(Math.round(next.periods), 1, 99);
         }
         if (Array.isArray(next.names)) {
-          config.names[0] = String(next.names[0] || config.names[0]).slice(0, 24);
-          config.names[1] = String(next.names[1] || config.names[1]).slice(0, 24);
+          // Only fall back when the entry is absent: an empty string is a
+          // legitimate value meaning "this seat has no name yet".
+          var n0 = next.names[0] === undefined || next.names[0] === null ? config.names[0] : next.names[0];
+          var n1 = next.names[1] === undefined || next.names[1] === null ? config.names[1] : next.names[1];
+          config.names[0] = String(n0).slice(0, 24);
+          config.names[1] = String(n1).slice(0, 24);
         }
         api.reset();
         return true;

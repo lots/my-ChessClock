@@ -1,10 +1,14 @@
 /*!
- * generate-icons.mjs - writes the two default logo files, with no dependencies.
+ * generate-icons.mjs - draws the built-in default logo, with no dependencies.
  *
- *   node tools/generate-icons.mjs
+ *   node tools/generate-icons.mjs            keeps any artwork already there
+ *   node tools/generate-icons.mjs --force    overwrites it
  *
  * The app only ever references icons/icon-48.png and icons/icon-96.png, so a
- * deployment can drop its own artwork over those two names and be done.
+ * deployment can drop its own artwork over those two names and be done. Since
+ * those two files ARE the brand, this script refuses to overwrite them unless
+ * --force is given: a rebranded deployment must not lose its mark to a stray
+ * build step.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -145,9 +149,16 @@ function render(size, ss = 4) {
   return encodePng(size, size, rgba);
 }
 
+const FORCE = process.argv.includes('--force');
+
 fs.mkdirSync(OUT, { recursive: true });
 for (const size of [48, 96]) {
   const file = path.join(OUT, 'icon-' + size + '.png');
+  const label = path.relative(path.resolve(HERE, '..'), file) + '  (' + size + 'x' + size + ')';
+  if (fs.existsSync(file) && !FORCE) {
+    console.log('kept  ' + label + '  - already exists, pass --force to overwrite');
+    continue;
+  }
   fs.writeFileSync(file, render(size, size <= 48 ? 6 : 4));
-  console.log('wrote ' + path.relative(path.resolve(HERE, '..'), file) + '  (' + size + 'x' + size + ')');
+  console.log('wrote ' + label);
 }
