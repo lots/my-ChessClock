@@ -1,3 +1,5 @@
+**English** · [华语](README_CHN.md)
+
 # CoQ Weiqi/Chess Clock
 
 A two-player **virtual chess clock** for community and inter-school tournaments —
