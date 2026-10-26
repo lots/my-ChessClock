@@ -169,7 +169,7 @@ npm start       # http://localhost:8080
 ## 六、项目结构
 
 ```text
-myChessClock/
+my-ChessClock/
 ├── README.md                  英文版说明
 ├── README_CHN.md              本文件（华语）
 ├── index.html                 应用外壳：meta、图标链接、脚本顺序

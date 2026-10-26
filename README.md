@@ -215,7 +215,7 @@ artwork.
 ## 6. Project layout
 
 ```text
-myChessClock/
+my-ChessClock/
 ├── README.md                  this file (English)
 ├── README_CHN.md              华语版说明
 ├── index.html                 app shell: meta, icon links, script order
